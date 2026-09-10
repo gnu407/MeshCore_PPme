@@ -5,7 +5,7 @@
 #include "RTC.h"
 
 #define WARDRIVER_ENABLED 1
-#define PING_INTERVAL_MS 60000 // Send ping every 60 seconds
+#define PING_INTERVAL_MS 30000 // Send ping every 30 seconds
 #define LOG_FILE_PATH "/wardrive.csv"
 
 void initWardriver();
