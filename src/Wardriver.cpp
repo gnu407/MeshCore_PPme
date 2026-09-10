@@ -2,22 +2,23 @@
 #include "MeshService.h"
 
 void initWardriver() {
-    if (!LittleFS.begin(true)) {
-        Serial.println("LittleFS Mount Failed");
-        return;
-    }
-    Serial.println("Standalone Wardriver Active");
+    // Meshtastic already initialized SPIFFS at boot.
+    // DO NOT call SPIFFS.begin() here, or it will clash and crash.
+    Serial.println("Standalone Wardriver Active - Using Native SPIFFS");
 }
 
 void logNodeToFS(const meshtastic_NodeInfo* node) {
     if (!node || !node->has_user) return;
     
-    File file = LittleFS.open(LOG_FILE_PATH, FILE_APPEND);
-    if (!file) return;
+    // FILE_APPEND will create the file if it doesn't exist
+    File file = SPIFFS.open(LOG_FILE_PATH, FILE_APPEND);
+    if (!file) {
+        Serial.println("FS Error: Could not open wardrive.csv");
+        return;
+    }
 
-    uint32_t now = getRTC(); // Returns 0 if BLE hasn't synced time yet
+    uint32_t now = getRTC(); 
     
-    // Logs: Timestamp, NodeNum, Name, Role, SNR
     file.printf("%u,%08x,%s,%d,%f\n", 
         now,
         node->num,
@@ -34,6 +35,5 @@ void sendActivePing() {
     pkt.decoded.payload.size = 0; 
     pkt.want_ack = false;
     
-    // Meshtastic's internal router automatically respects Time-On-Air limits
     service->sendToMesh(&pkt);
 }
